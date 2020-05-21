@@ -17,10 +17,28 @@ group_by_obj = obj.groupby(by=['Label']).mean()['conf_score']
 group_by_obj = group_by_obj.reset_index()
 #Insight 1
 #Conf scores of objects
-treemap = px.treemap(group_by_obj, path=['Label'], values='conf_score',title='Confidence Scores for Objects',
-                  color='conf_score',
-                  color_continuous_scale=px.colors.sequential.YlGnBu,
-                  color_continuous_midpoint=np.average(group_by_obj['conf_score']))
+# treemap = px.treemap(group_by_obj, path=['Label'], values='conf_score',title='Confidence Scores for Objects',
+#                   color='conf_score',
+#                   color_continuous_scale=px.colors.sequential.YlGnBu,
+#                   color_continuous_midpoint=np.average(group_by_obj['conf_score']))
+
+
+import plotly.graph_objects as go
+
+bar_colors = ['lightslategray'] * len(labels)
+bar_colors[1] = 'crimson'
+
+bar_graph = go.Figure(data=[go.Bar(
+    x=group_by_obj.Label,
+    y=group_by_obj.conf_score,
+    marker_color=bar_colors
+)])
+bar_graph.update_layout(title_text='Average Confidence Scores of Objects',
+	xaxis_title= "Objects", 
+	height=560,
+	yaxis_title="Confidence Scores")
+
+
 #external layout 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 #init
@@ -41,11 +59,11 @@ app.layout = html.Div(
         dcc.Tabs([
         #tab1
         dcc.Tab(label='Classifier Analysis', children=[
-        #treemap
+        #bar_graph
          html.Div([
             dcc.Graph(
-                id="treemap",
-                figure = treemap,
+                id="bar_graph",
+                figure = bar_graph,
                 )
             ], className="six columns"),
          #graph2 - distribution of conf_score for each object
@@ -64,27 +82,40 @@ app.layout = html.Div(
 )
 
 @app.callback(
-    dash.dependencies.Output('conf_score_dist', 'figure'),
-    [dash.dependencies.Input('treemap', 'clickData')])
+	dash.dependencies.Output('bar_graph','figure'),
+	[dash.dependencies.Input('bar_graph','clickData')]
+	)
+def update_color_of_bar_graph(selectedData):
+	bar_idx = selectedData['points'][0]['pointIndex']
+	updated_colors = ['lightslategray'] * len(labels)
+	updated_colors[bar_idx ] = 'crimson'
+	bar_graph.data[0].marker.color = updated_colors
+	return bar_graph
+	
+
+@app.callback(
+		dash.dependencies.Output('conf_score_dist', 'figure'),
+		[dash.dependencies.Input('bar_graph', 'clickData')])
 def update_obj_distribution_graph(selectedData):
-    empty_graph = {
-                        'data': [
-                        ],
-                        'layout': {
-                            'title': 'Distribution of Confidence Scores'
-                        }
-                    }
-    if selectedData is None:
-        return empty_graph 
-    points = selectedData['points'][0]
-    if 'label' not in points:
-        return empty_graph
-    selectedObj = selectedData['points'][0]['label']
-    idx = labels.index(selectedObj)
-    df = pd.DataFrame({selectedObj: label_vs_score[selectedObj]})
-    fig = ff.create_distplot([df[c] for c in df.columns], df.columns, bin_size=.25)
-    fig.update_layout(title = "Distribution of Confidence Scores for {}".format(selectedObj), xaxis_title = "Scores")
-    return fig
+	print(selectedData)
+	empty_graph = {'data': [],
+	'layout': {
+	'title': 'Distribution of Confidence Scores'
+	}
+}
+	if selectedData is None:
+		return empty_graph 
+	points = selectedData['points'][0]
+	if 'label' not in points:
+		return empty_graph
+	selectedObj = selectedData['points'][0]['x']
+	idx = labels.index(selectedObj)
+	df = pd.DataFrame({selectedObj: label_vs_score[selectedObj]})
+	fig = ff.create_distplot([df[c] for c in df.columns], df.columns, bin_size=.25)
+	fig.update_layout(title = "Distribution of Confidence Scores for {}".format(selectedObj),
+	height=560,
+	xaxis_title = "Scores")
+	return fig
 
 
 if __name__ == '__main__':
