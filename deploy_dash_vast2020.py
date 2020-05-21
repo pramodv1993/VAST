@@ -86,6 +86,8 @@ app.layout = html.Div(
 	[dash.dependencies.Input('bar_graph','clickData')]
 	)
 def update_color_of_bar_graph(selectedData):
+	if selectedData is None:
+		return bar_graph
 	bar_idx = selectedData['points'][0]['pointIndex']
 	updated_colors = ['lightslategray'] * len(labels)
 	updated_colors[bar_idx ] = 'crimson'
