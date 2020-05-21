@@ -25,8 +25,10 @@ group_by_obj = group_by_obj.reset_index()
 
 import plotly.graph_objects as go
 
+#initial bar selection 
 bar_colors = ['lightslategray'] * len(labels)
 bar_colors[1] = 'crimson'
+
 
 bar_graph = go.Figure(data=[go.Bar(
     x=group_by_obj.Label,
@@ -37,6 +39,7 @@ bar_graph.update_layout(title_text='Average Confidence Scores of Objects',
 	xaxis_title= "Objects", 
 	height=560,
 	yaxis_title="Confidence Scores")
+last_selected_obj = bar_graph.data[0].x[1]
 
 
 #external layout 
@@ -46,13 +49,18 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 #configuring logo
 encoded_img = base64.b64encode(open('tukl.png','rb').read())
 #init layout setup
+
 app.layout = html.Div(
     #title and logo
     html.Div([
+    	html.Div(
+    		[
+    			html.Img(src='data:image/png;base64,{}'.format(encoded_img.decode()), style={'float':'right'})
+    		], className='row'
+    	),
         html.Div(
             [
-            html.Img(src='data:image/png;base64,{}'.format(encoded_img.decode()), style={'float':'right'}),
-            html.H1(children='VAST 2020',style={ 'fontSize': 24},className='nine columns'),
+            html.H1(children='VAST 2020',style={ 'fontSize': 24},className='nine columns')
             ], className="row"
         ),
         #tabs
@@ -81,11 +89,12 @@ app.layout = html.Div(
 ])
 )
 
+
 @app.callback(
 	dash.dependencies.Output('bar_graph','figure'),
 	[dash.dependencies.Input('bar_graph','clickData')]
 	)
-def update_color_of_bar_graph(selectedData):
+def update_bar_color(selectedData):
 	if selectedData is None:
 		return bar_graph
 	bar_idx = selectedData['points'][0]['pointIndex']
@@ -99,22 +108,12 @@ def update_color_of_bar_graph(selectedData):
 		dash.dependencies.Output('conf_score_dist', 'figure'),
 		[dash.dependencies.Input('bar_graph', 'clickData')])
 def update_obj_distribution_graph(selectedData):
-	print(selectedData)
-	empty_graph = {'data': [],
-	'layout': {
-	'title': 'Distribution of Confidence Scores'
-	}
-}
-	if selectedData is None:
-		return empty_graph 
-	points = selectedData['points'][0]
-	if 'label' not in points:
-		return empty_graph
-	selectedObj = selectedData['points'][0]['x']
-	idx = labels.index(selectedObj)
-	df = pd.DataFrame({selectedObj: label_vs_score[selectedObj]})
+	global last_selected_obj
+	if selectedData is not None:
+		last_selected_obj = selectedData['points'][0]['x']
+	df = pd.DataFrame({last_selected_obj: label_vs_score[last_selected_obj]})
 	fig = ff.create_distplot([df[c] for c in df.columns], df.columns, bin_size=.25)
-	fig.update_layout(title = "Distribution of Confidence Scores for {}".format(selectedObj),
+	fig.update_layout(title = "Distribution of Confidence Scores for {}".format(last_selected_obj),
 	height=560,
 	xaxis_title = "Scores")
 	return fig
