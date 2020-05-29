@@ -57,13 +57,16 @@ class Person:
 	def get_sankey_diag_for_ppl(self, caption_vs_caption ,pids):
 		persons = []
 		words = []
+		empty_graph = {'data': [],
+					'layout': {'title': 'Similar Text Content between people'}
+					}
 		if len(pids) ==1:
 			if pids[0] in caption_vs_caption.keys():
 				import itertools
 				words  += set(list(itertools.chain(*caption_vs_caption[pids[0]].values())))
 				persons += [pids[0]] * len(words)
 			else:
-				return	
+				return empty_graph	
 		else:	
 			for _from in pids:
 				if _from not in caption_vs_caption.keys():
@@ -80,8 +83,8 @@ class Person:
 				{'label': 'Persons',
 				 'values': persons},
 				{'label': 'Common Words',
-				 'values': words}]
-		,line={'colorscale': [[0, 'gray'], [1, 'firebrick']], 'cmin': 0,
+				 'values': words}],
+				 line={'colorscale': [[0, 'gray'], [1, 'firebrick']], 'cmin': 0,
 					  'cmax': 1, 'color': np.zeros(len(persons)), 'shape': 'hspline'}))
 		fig.update_layout(height = 800, title="Similar Text Content between people")
 		return fig
