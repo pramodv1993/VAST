@@ -90,7 +90,7 @@ app.layout = html.Div(
 				)] , className="six columns"),
 			html.Div([
 				dcc.Graph(
-					id="obj_mapping"
+					id="caption_mapping"
 					)
 				], className="six columns")
 		
@@ -99,7 +99,7 @@ app.layout = html.Div(
 ])
 )
 
-@app.callback(dash.dependencies.Output('obj_mapping', 'figure'),
+@app.callback(dash.dependencies.Output('caption_mapping', 'figure'),
 	[dash.dependencies.Input('caption_vs_caption','selectedData')]
 	)
 def update_obj_mapping_viz(selectedData):
