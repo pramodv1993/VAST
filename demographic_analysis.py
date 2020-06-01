@@ -3,6 +3,14 @@ import pandas as pd
 import plotly.graph_objects as go
 import networkx as nx
 from text_processing_service import TextProcessing
+from sklearn.metrics.pairwise import euclidean_distances
+from PIL import Image
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+import sys
+
+from wordcloud import WordCloud, STOPWORDS
 
 class Person:
 
@@ -10,7 +18,6 @@ class Person:
 		self.images = pd.read_csv('Images.csv')
 		self.text = pd.read_csv('Texts.csv')
 		self.obj = pd.read_csv('Objects.csv')
-		
 		txt_process = TextProcessing()
 		processed_captions = []
 		for caption in self.images.caption:
@@ -19,6 +26,16 @@ class Person:
 			else:
 				processed_captions.append(txt_process.process_sentence(caption))
 		self.images['processed_caption'] = processed_captions
+		#empty_graph
+		empty_layout = go.Layout(
+		plot_bgcolor='rgba(0,0,0,0)',	
+		title = 'Common objects between persons',
+		xaxis = dict(showticklabels=False, showgrid=False, zeroline = False),
+		yaxis = dict(showticklabels = False, showgrid=False, zeroline = False),
+		height=600, width=800,
+		)
+		self.empty_graph = go.Figure()
+		self.empty_graph.update_layout(empty_layout)
 
 	def get_caption_to_caption_mapping(self):
 		personid_vs_caption = dict()
@@ -52,21 +69,35 @@ class Person:
 						else:
 							caption_vs_caption[from_id] = dict({pid: new_common_words})
 		return caption_vs_caption
+	
+	def get_object_similarity_matrix(self):
+		pids = self.obj.person_id.unique()
+		uniq_labels = [label.lower() for label in self.obj.Label.unique()]
+		obj_mat = []
+		for pid in pids:
+			vector = pd.DataFrame(np.zeros(len(uniq_labels)), index = uniq_labels)
+			labels =list( self.obj[self.obj.person_id == pid]['Label'])
+			for label in uniq_labels:
+				vector.loc[label] = labels.count(label)
+			obj_mat.append(np.ravel(vector))
+		return euclidean_distances(obj_mat)
 
-		
+	def get_heatmap_fig_for_matrix(self, matrix):
+		fig =go.Figure(data = go.Heatmap( z= matrix)) 
+		fig.update_layout(height = 700,width=800, title="Object Similarity between Persons")		
+		return fig
+
+
 	def get_sankey_diag_for_ppl(self, caption_vs_caption ,pids):
 		persons = []
 		words = []
-		empty_graph = {'data': [],
-					'layout': {'title': 'Similar Text Content between people'}
-					}
 		if len(pids) ==1:
 			if pids[0] in caption_vs_caption.keys():
 				import itertools
 				words  += set(list(itertools.chain(*caption_vs_caption[pids[0]].values())))
 				persons += [pids[0]] * len(words)
 			else:
-				return empty_graph	
+				return self.empty_graph.update_layout(title="Common words between persons")	
 		else:	
 			for _from in pids:
 				if _from not in caption_vs_caption.keys():
@@ -86,10 +117,11 @@ class Person:
 				 'values': words}],
 				 line={'colorscale': [[0, 'gray'], [1, 'firebrick']], 'cmin': 0,
 					  'cmax': 1, 'color': np.zeros(len(persons)), 'shape': 'hspline'}))
-		fig.update_layout(height = 800, title="Similar Text Content between people")
+		fig.update_layout(height = 800, title="Common words between persons")
 		return fig
 	
-	
+	def get_common_objects_between(self, p1, p2):
+		return set(self.obj[self.obj.person_id==p1].Label).intersection(set(self.obj[self.obj.person_id==p2].Label))
 		
 	def get_caption_2_caption_graph_object(self, caption_vs_caption, title ="Network Connections"):
 		edge_x = []
@@ -171,3 +203,10 @@ class Person:
 		return fig
 		
 
+	def get_totem_word_cloud(self, words):
+		# generate word cloud
+		if len(words) ==0:
+			return self.empty_graph 
+		wc = WordCloud(background_color='white').generate(' '.join(words))
+		return wc.to_array()
+		

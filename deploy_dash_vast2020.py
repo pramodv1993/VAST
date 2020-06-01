@@ -9,9 +9,17 @@ import plotly.figure_factory as ff
 from demographic_analysis import Person
 import plotly.graph_objects as go
 
+#empty_graph
+empty_layout = go.Layout(
+plot_bgcolor='rgba(0,0,0,0)',	
+xaxis = dict(showticklabels=False, showgrid=False, zeroline = False),
+yaxis = dict(showticklabels = False, showgrid=False, zeroline = False),
+height=600, width=800,
+)
+empty_graph = go.Figure()
+empty_graph.update_layout(empty_layout)
 
-
-#Classifier Insight #1
+#Classifier Insight #1 - Confidence Scores of objects
 obj = pd.read_csv('Objects.csv')
 uniq_labels = (list(obj.Label.unique())) 
 label_vs_score = dict()
@@ -34,12 +42,15 @@ bar_graph.update_layout(title_text='Average Confidence Scores of Objects',
 	yaxis_title="Confidence Scores")
 last_selected_obj = bar_graph.data[0].x[1]
 
-#Person Insight #2
+#Person Insight #1 - Caption based Connections
 person_analysis = Person()
 caption_vs_caption = person_analysis.get_caption_to_caption_mapping()
 caption_vs_caption_fig = person_analysis.get_caption_2_caption_graph_object(caption_vs_caption, 
 	title="Person Connectivity based on captions")
 
+#Peron Insight 2 - Objects Similarity between people
+dist_matrix = person_analysis.get_object_similarity_matrix()
+heatmap = person_analysis.get_heatmap_fig_for_matrix(dist_matrix)
 
 #external layout 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
@@ -66,48 +77,85 @@ app.layout = html.Div(
 		dcc.Tabs([
 		#tab1
 		dcc.Tab(label='Classifier Analysis', children=[
-		#bar_graph
-		 html.Div([
-			dcc.Graph(
-				id="bar_graph",
-				figure = bar_graph,
+		html.Div(
+					[
+					#graph-1
+					 html.Div([
+							dcc.Graph(
+							id="bar_graph",
+							figure = bar_graph,
+							)], className="six columns"),
+					#graph2 - distribution of conf_score for each object
+					html.Div([
+						dcc.Graph(
+							id="conf_score_dist"
+							)], className = "six columns")
+					], className="row"
 				)
-			], className="six columns"),
-		 #graph2 - distribution of conf_score for each object
-		html.Div([
-			dcc.Graph(
-				id="conf_score_dist"
-				)
-			], className = "six columns")
 		]),
 		#tab2
-		dcc.Tab(label='Demographic Analysis', children=[
-			#common text graph
-			html.Div([
-				dcc.Graph(
-				id="caption_vs_caption",
-				figure= caption_vs_caption_fig
-				)] , className="six columns"),
-			html.Div([
-				dcc.Graph(
-					id="caption_mapping"
-					)
-				], className="six columns")
+		dcc.Tab(label='Totem Analysis', children=[
+			html.Div(#common text graph
+						[
+							html.Div([
+								dcc.Graph(
+								id="caption_vs_caption",
+								figure= caption_vs_caption_fig
+								)], className="six columns"),
+						 	html.Div([
+								dcc.Graph(
+									id="caption_mapping"
+								)], className="six columns")
+						 ], className="row"
+					),
+			html.Div(	#heatmap
+						[
+							html.Div([
+								dcc.Graph(
+								id="obj_similarity",
+								figure= heatmap
+								)], className="six columns"),
+							html.Div([
+								dcc.Graph(
+								id="similar_objects",
+								)], className="six columns"),
+						 ], className="row"
+					),
+				
+				
 		
-	])
+		])
 	])
 ])
 )
 
-@app.callback(dash.dependencies.Output('caption_mapping', 'figure'),
-	[dash.dependencies.Input('caption_vs_caption','selectedData')]
-	)
-def update_obj_mapping_viz(selectedData):
-	empty_graph = {'data': [],
-					'layout': {'title': 'Similar Text Content between people'}
-					}
+@app.callback(dash.dependencies.Output('similar_objects', 'figure'),
+	[dash.dependencies.Input('obj_similarity','clickData')])
+def update_similar_object_viz(selectedData):
 	if selectedData is None:
 		return empty_graph
+	points = selectedData['points'][0]
+	p1, p2 = points['x'], points['y']
+	objects = person_analysis.get_common_objects_between(p1,p2)
+	if len(objects)==0:
+		return empty_graph
+	img_array = person_analysis.get_totem_word_cloud(objects)
+	fig = px.imshow(img_array)
+	layout = go.Layout(
+    title = 'Common objects between people',
+    xaxis = dict(showticklabels=False),
+    yaxis = dict(showticklabels = False),
+    height=600, width=800,
+)
+	fig.update_layout(layout)
+	return fig
+	
+
+@app.callback(dash.dependencies.Output('caption_mapping', 'figure'),
+	[dash.dependencies.Input('caption_vs_caption','selectedData')])
+def update_obj_mapping_viz(selectedData):
+	if selectedData is None:
+		return empty_graph.update_layout(title="Common words between persons")
 	points = selectedData['points']
 	pids = []	
 	for point in points:
