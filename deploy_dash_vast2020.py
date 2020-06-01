@@ -7,12 +7,18 @@ import numpy as np
 import pandas as pd
 import plotly.figure_factory as ff
 from demographic_analysis import Person
+from ClassifierAnalysis import ClassifierAnalysis
 import plotly.graph_objects as go
 
 
+#Analysis 1 and 2
+obj = pd.read_csv('Objects.csv')
+classifier_analysis = ClassifierAnalysis(obj)
+DensityVsConfScoreFig = classifier_analysis.GetDensityVsConfScoreGraph()
+BBSizeVsConfScoreFig = classifier_analysis.GetBBSizeVsConfScoreGraph()
 
 #Classifier Insight #1
-obj = pd.read_csv('Objects.csv')
+
 uniq_labels = (list(obj.Label.unique())) 
 label_vs_score = dict()
 for label in uniq_labels:
@@ -66,6 +72,20 @@ app.layout = html.Div(
 		dcc.Tabs([
 		#tab1
 		dcc.Tab(label='Classifier Analysis', children=[
+		#Analysis 1
+		html.Div([
+			dcc.Graph(
+				id="BBSizeVsConfScoreFig",
+				figure = BBSizeVsConfScoreFig,
+				)
+			], className="six columns"),
+		#Analysis 2
+		html.Div([
+			dcc.Graph(
+				id="DensityVsConfScoreFig",
+				figure = DensityVsConfScoreFig,
+				)
+			], className="six columns"),
 		#bar_graph
 		 html.Div([
 			dcc.Graph(
