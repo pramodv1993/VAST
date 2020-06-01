@@ -29,7 +29,6 @@ classifier_analysis = ClassifierAnalysis(obj)
 DensityVsConfScoreFig = classifier_analysis.GetDensityVsConfScoreGraph()
 BBSizeVsConfScoreFig = classifier_analysis.GetBBSizeVsConfScoreGraph()
 
-#Classifier Insight #1
 
 
 uniq_labels = (list(obj.Label.unique())) 
@@ -38,7 +37,7 @@ for label in uniq_labels:
 	label_vs_score[label] = obj[obj.Label==label]['conf_score']
 group_by_obj = obj.groupby(by=['Label']).mean()['conf_score']
 group_by_obj = group_by_obj.reset_index()
-#initial bar selection 
+#initial bar selection
 bar_colors = ['lightslategray'] * len(uniq_labels)
 bar_colors[1] = 'crimson'
 
@@ -51,8 +50,13 @@ bar_graph.update_layout(title_text='Average Confidence Scores of Objects',
 	xaxis_title= "Objects", 
 	height=560,
 	yaxis_title="Confidence Scores")
-last_selected_obj = bar_graph.data[0].x[1]
 
+#Initial bubble selection
+BBSizeVsConfScoreFig.data[0].marker.color = bar_colors
+
+last_selected_obj = bar_graph.data[0].x[1]
+last_bubble_idx = 1
+last_bar_idx = 1
 #Person Insight #1 - Caption based Connections
 person_analysis = Person()
 caption_vs_caption = person_analysis.get_caption_to_caption_mapping()
@@ -187,27 +191,43 @@ def update_obj_mapping_viz(selectedData):
 		pids.append(int(person[person.index('#')+1 : person.rindex('|') -1])) 
 	return person_analysis.get_sankey_diag_for_ppl(caption_vs_caption, pids)
 
-@app.callback(
-	dash.dependencies.Output('bar_graph','figure'),
-	[dash.dependencies.Input('bar_graph','clickData')]
-	)
-def update_bar_color(selectedData):
-	if selectedData is None:
-		return bar_graph
-	bar_idx = selectedData['points'][0]['pointIndex']
+@app.callback([dash.dependencies.Output('bar_graph','figure'),
+	dash.dependencies.Output('BBSizeVsConfScoreFig', 'figure')],
+	[dash.dependencies.Input('bar_graph','clickData'),
+	dash.dependencies.Input('BBSizeVsConfScoreFig', 'clickData')])
+def update_bar_color(curr_bar_idx, curr_bubble_idx):
+	#updating both graphs
+	global last_bar_idx, last_bubble_idx
+	new_idx = 0
+	if curr_bar_idx is None and curr_bubble_idx is None:
+		return bar_graph, BBSizeVsConfScoreFig
+	if curr_bar_idx is not None:
+		new_bar_idx = curr_bar_idx['points'][0]['pointIndex']
+		if new_bar_idx != last_bar_idx:
+			new_idx = new_bar_idx
+			last_bar_idx = new_idx
+	if curr_bubble_idx is not None:
+		new_bubble_idx = curr_bubble_idx['points'][0]['pointIndex']
+		if new_bubble_idx != last_bubble_idx:
+			new_idx = new_bubble_idx
+			last_bubble_idx = new_idx
+	
 	updated_colors = ['lightslategray'] * len(uniq_labels)
-	updated_colors[bar_idx ] = 'crimson'
+	updated_colors[new_idx] = 'crimson'
 	bar_graph.data[0].marker.color = updated_colors
-	return bar_graph
+	BBSizeVsConfScoreFig.data[0].marker.color = updated_colors
+
+	return bar_graph, BBSizeVsConfScoreFig
 	
 
-@app.callback(
-		dash.dependencies.Output('conf_score_dist', 'figure'),
-		[dash.dependencies.Input('bar_graph', 'clickData')])
-def update_obj_distribution_graph(selectedData):
+@app.callback(dash.dependencies.Output('conf_score_dist', 'figure'),
+		[dash.dependencies.Input('bar_graph', 'clickData'), dash.dependencies.Input('BBSizeVsConfScoreFig','clickData')])
+def update_obj_distribution_graph(selectedData, bubbledata):
 	global last_selected_obj
+	# print(selectedData, bubbledata)
 	if selectedData is not None:
 		last_selected_obj = selectedData['points'][0]['x']
+		selectedData = None
 	df = pd.DataFrame({last_selected_obj: label_vs_score[last_selected_obj]})
 	fig = ff.create_distplot([df[c] for c in df.columns], df.columns, bin_size=.25)
 	fig.update_layout(title = "Distribution of Confidence Scores for {}".format(last_selected_obj),

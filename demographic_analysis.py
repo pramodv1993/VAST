@@ -103,9 +103,7 @@ class Person:
 				if _from not in caption_vs_caption.keys():
 						continue
 				for _to in pids:
-					if _to not in caption_vs_caption[_from].keys():
-						continue
-					if _from==_to:
+					if _from ==_to or _to not in caption_vs_caption[_from].keys():
 						continue
 					persons += [_from] * len(caption_vs_caption[_from][_to])
 					words += caption_vs_caption[_from][_to]
