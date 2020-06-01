@@ -50,13 +50,20 @@ bar_graph.update_layout(title_text='Average Confidence Scores of Objects',
 	xaxis_title= "Objects", 
 	height=560,
 	yaxis_title="Confidence Scores")
-
 #Initial bubble selection
 BBSizeVsConfScoreFig.data[0].marker.color = bar_colors
-
+#initial viz setting
 last_selected_obj = bar_graph.data[0].x[1]
 last_bubble_idx = 1
 last_bar_idx = 1
+#initial dist
+df = pd.DataFrame({last_selected_obj: label_vs_score[last_selected_obj]})
+dist = ff.create_distplot([df[c] for c in df.columns], df.columns, bin_size=.25)
+dist.update_layout(title = "Distribution of Confidence Scores for {}".format(last_selected_obj),
+height=560,
+xaxis_title = "Scores")
+
+
 #Person Insight #1 - Caption based Connections
 person_analysis = Person()
 caption_vs_caption = person_analysis.get_caption_to_caption_mapping()
@@ -121,7 +128,8 @@ app.layout = html.Div(
 								##Analysis 4
 								html.Div([
 											dcc.Graph(
-											id="conf_score_dist"
+											id="conf_score_dist",
+											figure = dist
 										)], className = "six columns")
 					], className="row")
 				]),	
@@ -191,50 +199,49 @@ def update_obj_mapping_viz(selectedData):
 		pids.append(int(person[person.index('#')+1 : person.rindex('|') -1])) 
 	return person_analysis.get_sankey_diag_for_ppl(caption_vs_caption, pids)
 
+
+
 @app.callback([dash.dependencies.Output('bar_graph','figure'),
-	dash.dependencies.Output('BBSizeVsConfScoreFig', 'figure')],
+	dash.dependencies.Output('BBSizeVsConfScoreFig', 'figure'),
+	dash.dependencies.Output('conf_score_dist', 'figure')],
 	[dash.dependencies.Input('bar_graph','clickData'),
 	dash.dependencies.Input('BBSizeVsConfScoreFig', 'clickData')])
-def update_bar_color(curr_bar_idx, curr_bubble_idx):
+def update_graph_colors_and_dist(bar_data, bubble_data):
 	#updating both graphs
-	global last_bar_idx, last_bubble_idx
+	global last_bar_idx, last_bubble_idx, last_selected_obj,bar_graph,BBSizeVsConfScoreFig,dist
 	new_idx = 0
-	if curr_bar_idx is None and curr_bubble_idx is None:
-		return bar_graph, BBSizeVsConfScoreFig
-	if curr_bar_idx is not None:
-		new_bar_idx = curr_bar_idx['points'][0]['pointIndex']
-		if new_bar_idx != last_bar_idx:
-			new_idx = new_bar_idx
+	
+	if bar_data is None and bubble_data is None:
+		return bar_graph, BBSizeVsConfScoreFig, dist
+	
+	if bar_data is not None:
+		curr_bar_idx = bar_data['points'][0]['pointIndex']
+		if curr_bar_idx != last_bar_idx:
+			new_idx = curr_bar_idx
 			last_bar_idx = new_idx
-	if curr_bubble_idx is not None:
-		new_bubble_idx = curr_bubble_idx['points'][0]['pointIndex']
-		if new_bubble_idx != last_bubble_idx:
-			new_idx = new_bubble_idx
+			last_selected_obj  = bar_data['points'][0]['x']
+	if bubble_data is not None:
+		curr_bubble_idx = bubble_data['points'][0]['pointIndex']
+		if curr_bubble_idx != last_bubble_idx:
+			new_idx = curr_bubble_idx
 			last_bubble_idx = new_idx
+			last_selected_obj  = bubble_data['points'][0]['customdata'][0]
 	
 	updated_colors = ['lightslategray'] * len(uniq_labels)
 	updated_colors[new_idx] = 'crimson'
+	#update bar graph
 	bar_graph.data[0].marker.color = updated_colors
+	#update bubble chart
 	BBSizeVsConfScoreFig.data[0].marker.color = updated_colors
-
-	return bar_graph, BBSizeVsConfScoreFig
-	
-
-@app.callback(dash.dependencies.Output('conf_score_dist', 'figure'),
-		[dash.dependencies.Input('bar_graph', 'clickData'), dash.dependencies.Input('BBSizeVsConfScoreFig','clickData')])
-def update_obj_distribution_graph(selectedData, bubbledata):
-	global last_selected_obj
-	# print(selectedData, bubbledata)
-	if selectedData is not None:
-		last_selected_obj = selectedData['points'][0]['x']
-		selectedData = None
+	#update distribution
 	df = pd.DataFrame({last_selected_obj: label_vs_score[last_selected_obj]})
-	fig = ff.create_distplot([df[c] for c in df.columns], df.columns, bin_size=.25)
-	fig.update_layout(title = "Distribution of Confidence Scores for {}".format(last_selected_obj),
+	dist = ff.create_distplot([df[c] for c in df.columns], df.columns, bin_size=.25)
+	dist.update_layout(title = "Distribution of Confidence Scores for {}".format(last_selected_obj),
 	height=560,
 	xaxis_title = "Scores")
-	return fig
 
+	return bar_graph, BBSizeVsConfScoreFig, dist
+	
 
 if __name__ == '__main__':
 	app.run_server(debug=True)
