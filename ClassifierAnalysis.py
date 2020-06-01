@@ -23,6 +23,7 @@ class ClassifierAnalysis():
         avg_bb_size = list()
         conf_score_mean = list()
         conf_score_var = list()
+        object_name = list()
         for i, grp in group:
             bb_Size = grp['BoundingBoxSize'].mean()
             conf_mean = grp['conf_score'].mean()
@@ -30,8 +31,14 @@ class ClassifierAnalysis():
             avg_bb_size.append(bb_Size)
             conf_score_mean.append(conf_mean)
             conf_score_var.append(var_conf)
+            object_name += [i]
+            
+        df = pd.DataFrame(object_name, columns=['object_name'])
+        df['conf_score_mean'] = conf_score_mean
+        df['conf_score_var'] = conf_score_var
+        df['avg_bb_size'] = avg_bb_size
     
-        fig = px.scatter(x=conf_score_mean, y=conf_score_var, size=avg_bb_size)
+        fig = px.scatter(df, x="conf_score_mean", y="conf_score_var", size="avg_bb_size", hover_data=["object_name"])
         fig.update_layout(xaxis_title="Conf_Score mean", yaxis_title="Conf_Score Variance")
         return fig
         
@@ -60,8 +67,7 @@ class ClassifierAnalysis():
         df = df.replace([np.inf, -np.inf], np.nan)
         df = df.dropna()
         
-        fig = px.scatter(x= df['average_density'], y=df['average_conf_score'])
+        fig = px.scatter(df, "average_density", y="average_conf_score",  hover_data=["name"])
         fig.update_layout(xaxis_title="Average Density of Objects", yaxis_title="Conf_Score Mean")
         fig.update_xaxes(range=[0.00001, 0.0003])
         return fig
- 
