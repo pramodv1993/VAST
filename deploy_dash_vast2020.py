@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import plotly.figure_factory as ff
 from demographic_analysis import Person
+from ClassifierAnalysis import ClassifierAnalysis
 import plotly.graph_objects as go
 
 #empty_graph
@@ -21,6 +22,16 @@ empty_graph.update_layout(empty_layout)
 
 #Classifier Insight #1 - Confidence Scores of objects
 obj = pd.read_csv('Objects.csv')
+
+#Analysis 1 and 2
+obj = pd.read_csv('Objects.csv')
+classifier_analysis = ClassifierAnalysis(obj)
+DensityVsConfScoreFig = classifier_analysis.GetDensityVsConfScoreGraph()
+BBSizeVsConfScoreFig = classifier_analysis.GetBBSizeVsConfScoreGraph()
+
+#Classifier Insight #1
+
+
 uniq_labels = (list(obj.Label.unique())) 
 label_vs_score = dict()
 for label in uniq_labels:
@@ -57,15 +68,18 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 #init
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 #configuring logo
-encoded_img = base64.b64encode(open('tukl.png','rb').read())
+encoded_logo = base64.b64encode(open('tukl.png','rb').read())
+encoded_totem = base64.b64encode(open('totem2.jpg','rb').read())
 #init layout setup
 
 app.layout = html.Div(
 	#title and logo
-	html.Div([
+	html.Div
+	([
 		html.Div(
 			[
-				html.Img(src='data:image/png;base64,{}'.format(encoded_img.decode()), style={'float':'right'})
+				html.Div(html.Img(src='data:image/png;base64,{}'.format(encoded_logo.decode()), style={'float':'right'})),
+				html.Div(html.Img(src='data:image/png;base64,{}'.format(encoded_totem.decode()), style={'float':'left'}))
 			], className='row'
 		),
 		html.Div(
@@ -75,58 +89,68 @@ app.layout = html.Div(
 		),
 		#tabs
 		dcc.Tabs([
-		#tab1
-		dcc.Tab(label='Classifier Analysis', children=[
-		html.Div(
-					[
-					#graph-1
-					 html.Div([
-							dcc.Graph(
-							id="bar_graph",
-							figure = bar_graph,
-							)], className="six columns"),
-					#graph2 - distribution of conf_score for each object
+			#tab1
+			dcc.Tab(label='Classifier Analysis', children=
+				[
 					html.Div([
-						dcc.Graph(
-							id="conf_score_dist"
-							)], className = "six columns")
-					], className="row"
-				)
-		]),
-		#tab2
-		dcc.Tab(label='Totem Analysis', children=[
-			html.Div(#common text graph
-						[
-							html.Div([
-								dcc.Graph(
-								id="caption_vs_caption",
-								figure= caption_vs_caption_fig
-								)], className="six columns"),
-						 	html.Div([
-								dcc.Graph(
-									id="caption_mapping"
-								)], className="six columns")
-						 ], className="row"
-					),
-			html.Div(	#heatmap
-						[
-							html.Div([
-								dcc.Graph(
-								id="obj_similarity",
-								figure= heatmap
-								)], className="six columns"),
-							html.Div([
-								dcc.Graph(
-								id="similar_objects",
-								)], className="six columns"),
-						 ], className="row"
-					),
-				
-				
-		
+								#Analysis 1
+								html.Div([
+											dcc.Graph(
+											id="BBSizeVsConfScoreFig",
+											figure = BBSizeVsConfScoreFig,
+										)], className="six columns"),
+								#Analysis 2
+								html.Div([
+											dcc.Graph(
+											id="DensityVsConfScoreFig",
+											figure = DensityVsConfScoreFig,
+										)], className="six columns"),
+					], className="row"),
+								
+					html.Div([	
+								##Analysis 2
+								html.Div([	
+											dcc.Graph(
+											id="bar_graph",
+											figure = bar_graph,
+										)], className="six columns"),
+								##Analysis 4
+								html.Div([
+											dcc.Graph(
+											id="conf_score_dist"
+										)], className = "six columns")
+					], className="row")
+				]),	
+			#tab2
+			dcc.Tab(label='Totem Analysis', children=
+				[
+					html.Div([
+								#Common words
+								html.Div([
+									dcc.Graph(
+									id="caption_vs_caption",
+									figure= caption_vs_caption_fig
+									)], className="six columns"),
+							 	html.Div([
+									dcc.Graph(
+										id="caption_mapping"
+									)], className="six columns")
+						], className="row"),
+					html.Div([
+								#Common objects
+								html.Div([
+									dcc.Graph(
+									id="obj_similarity",
+									figure= heatmap
+									)], className="six columns"),
+								html.Div([
+									dcc.Graph(
+									id="similar_objects",
+									)], className="six columns"),
+							 ], className="row")
+				])
 		])
 	])
-])
 )
 
 @app.callback(dash.dependencies.Output('similar_objects', 'figure'),
