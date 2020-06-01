@@ -29,8 +29,6 @@ classifier_analysis = ClassifierAnalysis(obj)
 DensityVsConfScoreFig = classifier_analysis.GetDensityVsConfScoreGraph()
 BBSizeVsConfScoreFig = classifier_analysis.GetBBSizeVsConfScoreGraph()
 
-
-
 uniq_labels = (list(obj.Label.unique())) 
 label_vs_score = dict()
 for label in uniq_labels:
@@ -207,13 +205,11 @@ def update_obj_mapping_viz(selectedData):
 	[dash.dependencies.Input('bar_graph','clickData'),
 	dash.dependencies.Input('BBSizeVsConfScoreFig', 'clickData')])
 def update_graph_colors_and_dist(bar_data, bubble_data):
-	#updating both graphs
+	#updating all 3  graphs
 	global last_bar_idx, last_bubble_idx, last_selected_obj,bar_graph,BBSizeVsConfScoreFig,dist
 	new_idx = 0
-	
 	if bar_data is None and bubble_data is None:
 		return bar_graph, BBSizeVsConfScoreFig, dist
-	
 	if bar_data is not None:
 		curr_bar_idx = bar_data['points'][0]['pointIndex']
 		if curr_bar_idx != last_bar_idx:
@@ -226,7 +222,6 @@ def update_graph_colors_and_dist(bar_data, bubble_data):
 			new_idx = curr_bubble_idx
 			last_bubble_idx = new_idx
 			last_selected_obj  = bubble_data['points'][0]['customdata'][0]
-	
 	updated_colors = ['lightslategray'] * len(uniq_labels)
 	updated_colors[new_idx] = 'crimson'
 	#update bar graph
@@ -239,9 +234,7 @@ def update_graph_colors_and_dist(bar_data, bubble_data):
 	dist.update_layout(title = "Distribution of Confidence Scores for {}".format(last_selected_obj),
 	height=560,
 	xaxis_title = "Scores")
-
 	return bar_graph, BBSizeVsConfScoreFig, dist
 	
-
 if __name__ == '__main__':
 	app.run_server(debug=True)
