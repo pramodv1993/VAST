@@ -213,12 +213,14 @@ def update_graph_colors_and_dist(bar_data, bubble_data):
 	if bar_data is not None:
 		curr_bar_idx = bar_data['points'][0]['pointIndex']
 		if curr_bar_idx != last_bar_idx:
+			print("bar",last_bar_idx, curr_bar_idx)
 			new_idx = curr_bar_idx
 			last_bar_idx = new_idx
 			last_selected_obj  = bar_data['points'][0]['x']
 	if bubble_data is not None:
 		curr_bubble_idx = bubble_data['points'][0]['pointIndex']
 		if curr_bubble_idx != last_bubble_idx:
+			print("bubble",last_bubble_idx, curr_bubble_idx)
 			new_idx = curr_bubble_idx
 			last_bubble_idx = new_idx
 			last_selected_obj  = bubble_data['points'][0]['customdata'][0]
