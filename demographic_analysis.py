@@ -217,8 +217,6 @@ class Person:
 
 	def getDistribution(self, ObjectName):
     		row = self.dist.loc[self.dist['Object']== ObjectName]
-    		print("Row",row)
-    		print("list",row.iloc[0]['Distribution'])
     		fig = px.bar(x=np.arange(1,41), y=row.iloc[0]['Distribution'])
     		fig.update_layout(title="Distribution of {} across 40 people".format(ObjectName), xaxis_title="Pesron Id", yaxis_title="Count")
     		return fig
