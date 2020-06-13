@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from ast import literal_eval
 import plotly.graph_objects as go
 import networkx as nx
 from text_processing_service import TextProcessing
@@ -9,6 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import sys
+import plotly.express as px
 
 from wordcloud import WordCloud, STOPWORDS
 
@@ -18,6 +20,8 @@ class Person:
 		self.images = pd.read_csv('Images.csv')
 		self.text = pd.read_csv('Texts.csv')
 		self.obj = pd.read_csv('Objects.csv')
+		self.dist = pd.read_csv('ObjectDistribution.csv')
+		self.dist['Distribution'] = self.dist.apply(self.ConvetToArray, axis = 1)
 		txt_process = TextProcessing()
 		processed_captions = []
 		for caption in self.images.caption:
@@ -208,3 +212,13 @@ class Person:
 		wc = WordCloud(background_color='white').generate(' '.join(words))
 		return wc.to_array()
 		
+	def ConvetToArray(self, row):
+    		return np.array(literal_eval(row['Distribution']))
+
+	def getDistribution(self, ObjectName):
+    		row = self.dist.loc[self.dist['Object']== ObjectName]
+    		print("Row",row)
+    		print("list",row.iloc[0]['Distribution'])
+    		fig = px.bar(x=np.arange(1,41), y=row.iloc[0]['Distribution'])
+    		fig.update_layout(title="Distribution of {} across 40 people".format(ObjectName), xaxis_title="Pesron Id", yaxis_title="Count")
+    		return fig
