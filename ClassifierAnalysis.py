@@ -51,7 +51,11 @@ class ClassifierAnalysis():
 		df['avg_bb_size'] = avg_bb_size
 
 		fig = px.scatter(df, x="conf_score_mean", y="conf_score_var", size="avg_bb_size", hover_data=["object_name"])
-		fig.update_layout(xaxis_title="Conf_Score mean", yaxis_title="Conf_Score Variance")
+		fig.update_layout(title='Mean vs Variance of Confidence scores for each object',
+		plot_bgcolor="#F9F9F9",
+		paper_bgcolor="#F9F9F9",
+		xaxis_title="Conf_Score mean",
+		yaxis_title="Conf_Score Variance")
 		return fig
 
 	def GetDensityVsConfScoreGraph(self):
@@ -80,7 +84,11 @@ class ClassifierAnalysis():
 		df = df.dropna()
 
 		fig = px.scatter(df, "average_density", y="average_conf_score",  hover_data=["name"])
-		fig.update_layout(xaxis_title="Average Density of Objects", yaxis_title="Conf_Score Mean")
+		fig.update_layout(title = 'Mean Confidence Score vs Average density of each object in the images ',
+		plot_bgcolor="#F9F9F9",
+		paper_bgcolor="#F9F9F9",
+		xaxis_title="Average Density of Objects",
+		yaxis_title="Conf_Score Mean")
 		fig.update_xaxes(range=[0.00001, 0.0003])
 		return fig
 
@@ -90,6 +98,7 @@ class ClassifierAnalysis():
 		obj_grp_by_cnt = sorted(obj_grp_by_cnt.items(), key=lambda x: x[1], reverse= True)
 		objs, counts = [tup[0] for tup in obj_grp_by_cnt], [tup[1] for tup in obj_grp_by_cnt]
 		return objs, counts
+
 	def get_obj_ground_truth_vs_predictions(self):
 		obj_vs_predictions = list()
 		for row in self.images.iterrows():

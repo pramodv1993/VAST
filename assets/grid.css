@@ -1,10 +1,28 @@
 .grid-container {
   display: grid;
-   grid-gap: 20px 10px;
-  grid-template-columns: auto auto auto auto;
+  grid-gap: 20px 10px;
+  grid-template-columns: auto auto auto;
   /* padding: 2px; */
 }
 
 .grid-item {
-  padding-top: 40px;
+  padding-top: 30px;
+}
+
+.pretty_container {
+  border-radius: 5px;
+  background-color: #F9F9F9;
+  margin: 10px;
+  padding: 15px;
+  position: relative;
+  box-shadow: 2px 2px 2px lightgrey;
+}
+body {
+  font-size: 1.5em; /* currently ems cause chrome bug misinterpreting rems on body element */
+  line-height: 1.6;
+  font-weight: 400;
+  font-family: "Open Sans", "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: rgb(50, 50, 50);
+  background-color: #F2F2F2;
+  margin: 5%;
 }
