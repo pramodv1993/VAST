@@ -32,7 +32,8 @@ class Person:
 		self.images['processed_caption'] = processed_captions
 		#empty_graph
 		empty_layout = go.Layout(
-		plot_bgcolor='rgba(0,0,0,0)',	
+		plot_bgcolor="#F9F9F9",
+		paper_bgcolor="#F9F9F9",
 		title = 'Common objects between persons',
 		xaxis = dict(showticklabels=False, showgrid=False, zeroline = False),
 		yaxis = dict(showticklabels = False, showgrid=False, zeroline = False),
@@ -73,7 +74,7 @@ class Person:
 						else:
 							caption_vs_caption[from_id] = dict({pid: new_common_words})
 		return caption_vs_caption
-	
+
 	def get_object_similarity_matrix(self):
 		pids = self.obj.person_id.unique()
 		uniq_labels = [label.lower() for label in self.obj.Label.unique()]
@@ -87,8 +88,12 @@ class Person:
 		return euclidean_distances(obj_mat)
 
 	def get_heatmap_fig_for_matrix(self, matrix):
-		fig =go.Figure(data = go.Heatmap( z= matrix)) 
-		fig.update_layout(height = 700,width=800, title="Object Similarity between Persons")		
+		fig =go.Figure(data = go.Heatmap( z= matrix))
+		fig.update_layout(height = 700,
+		plot_bgcolor="#F9F9F9",
+		paper_bgcolor="#F9F9F9",
+		width=800,
+		title="Object Similarity between Persons")
 		return fig
 
 
@@ -101,8 +106,8 @@ class Person:
 				words  += set(list(itertools.chain(*caption_vs_caption[pids[0]].values())))
 				persons += [pids[0]] * len(words)
 			else:
-				return self.empty_graph.update_layout(title="Common words between persons")	
-		else:	
+				return self.empty_graph.update_layout(title="Common words between persons")
+		else:
 			for _from in pids:
 				if _from not in caption_vs_caption.keys():
 						continue
@@ -119,18 +124,21 @@ class Person:
 				 'values': words}],
 				 line={'colorscale': [[0, 'gray'], [1, 'firebrick']], 'cmin': 0,
 					  'cmax': 1, 'color': np.zeros(len(persons)), 'shape': 'hspline'}))
-		fig.update_layout(height = 800, title="Common words between persons")
+		fig.update_layout(height = 800,
+		plot_bgcolor="#F9F9F9",
+		paper_bgcolor="#F9F9F9",
+		title="Common words between persons")
 		return fig
-	
+
 	def get_common_objects_between(self, p1, p2):
 		return set(self.obj[self.obj.person_id==p1].Label).intersection(set(self.obj[self.obj.person_id==p2].Label))
-		
+
 	def get_caption_2_caption_graph_object(self, caption_vs_caption, title ="Network Connections"):
 		edge_x = []
 		edge_y = []
 		G = nx.Graph()
 		G.add_nodes_from(np.arange(1,41))
-		edges = [G.add_edge(from_id,to_id,weight = len(common_words)) 
+		edges = [G.add_edge(from_id,to_id,weight = len(common_words))
 		for from_id in sorted(caption_vs_caption) for to_id, common_words in caption_vs_caption[from_id].items()]
 		#adding positions
 		pos = nx.spring_layout(G, k=2.5)
@@ -166,10 +174,6 @@ class Person:
 			hoverinfo='text',
 			marker=dict(
 				showscale=True,
-				# colorscale options
-				#'Greys' | 'YlGnBu' | 'Greens' | 'YlOrRd' | 'Bluered' | 'RdBu' |
-				#'Reds' | 'Blues' | 'Picnic' | 'Rainbow' | 'Portland' | 'Jet' |
-				#'Hot' | 'Blackbody' | 'Earth' | 'Electric' | 'Viridis' |
 				colorscale='YlGnBu',
 				reversescale=True,
 				color=[],
@@ -203,20 +207,24 @@ class Person:
 						)
 		fig.update_layout(height = 700)
 		return fig
-		
+
 
 	def get_totem_word_cloud(self, words):
 		# generate word cloud
 		if len(words) ==0:
-			return self.empty_graph 
-		wc = WordCloud(background_color='white').generate(' '.join(words))
+			return self.empty_graph
+		wc = WordCloud(background_color='#F9F9F9').generate(' '.join(words))
 		return wc.to_array()
-		
+
 	def ConvetToArray(self, row):
     		return np.array(literal_eval(row['Distribution']))
 
 	def getDistribution(self, ObjectName):
     		row = self.dist.loc[self.dist['Object']== ObjectName]
     		fig = px.bar(x=np.arange(1,41), y=row.iloc[0]['Distribution'])
-    		fig.update_layout(title="Distribution of {} across 40 people".format(ObjectName), xaxis_title="Pesron Id", yaxis_title="Count")
+    		fig.update_layout(title="Distribution of {} across 40 people".format(ObjectName),
+			plot_bgcolor="#F9F9F9",
+			paper_bgcolor="#F9F9F9",
+			xaxis_title="Pesron Id",
+			yaxis_title="Count")
     		return fig
