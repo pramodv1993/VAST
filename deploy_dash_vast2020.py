@@ -1,4 +1,4 @@
-import dash
+ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import base64
@@ -223,9 +223,7 @@ app.layout = html.Div(
 							], className="row"), html.Br(),
 					html.Div([
 									html.Div(html.Button('Eliminate False Positives', id='del_fps', n_clicks=0)
-									,className='pretty_container four columns'),
-									# html.Div(html.Button('Re-annotate Images', id='reannotate_tps', n_clicks=0)
-									# ,className='six columns')
+									,className='pretty_container four columns')
 							]
 						,className="row"),
 					html.Div([
@@ -408,15 +406,6 @@ def on_image_click(n_clicks, id):
 		return highlight
 
 prev_tps_list = []
-# @app.callback(Output('TruePositiveImages', 'options'),
-# [Input('reannotate_tps', 'n_clicks')])
-# def reannotate(n_clicks):
-# 	global prev_tps_list
-# 	if n_clicks is None:
-# 		return prev_tps_list
-# 	prev_tps_list = [{'label': val, 'value': val} for val in fps_to_eliminate]
-# 	return prev_tps_list
-
 last_fp_object_selected = None
 fp_img_list = []
 change_in_conf_scores = dict((label, [0.0]) for label in uniq_labels)
@@ -605,18 +594,6 @@ def updateBoundingBox(relayoutData, value):
 	width = width_cur
 	height =height_cur
 	print(x_vals_cur,y_vals_cur,width_cur,height_cur)
-	# BoundingBox[0] = (x_vals.min())
-	# BoundingBox[1] = (y_vals.min())
-	# BoundingBox[2] = (x_vals.max())
-	# BoundingBox[3] = (y_vals.max())
-	# print("BoundingBox",BoundingBox)
-	#DensityVsConfScoreFigNew = classifier_analysis.GetDensityVsConfScoreGraph(objectName=lastImageSelected,xminNew=x_vals.min(), yminNew=y_vals.min(), xmaxNew=x_vals.max(),ymaxNew=y_vals.max())
-	#print("x_vals",x_vals)
-	#print("y_vals",y_vals)
-	#print("x and y min",x_vals.min(),y_vals.min())
-	#print("x and y max",x_vals.max(),y_vals.max())
-	#return DensityVsConfScoreFigNew
-
 	if value is not None:
 		newObject.clear()
 		for val in value:
