@@ -107,8 +107,8 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 #init
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 #configuring logo
-encoded_logo = base64.b64encode(open('tukl.png','rb').read())
-encoded_dept_logo = base64.b64encode(open('dept_logo.png','rb').read())
+encoded_logo = base64.b64encode(open('../logos/tukl.png','rb').read())
+encoded_dept_logo = base64.b64encode(open('../logos/dept_logo.png','rb').read())
 #init layout setup
 
 app.layout = html.Div(
