@@ -22,6 +22,7 @@ class Person:
 		self.obj = pd.read_csv('Objects.csv')
 		self.dist = pd.read_csv('ObjectDistribution.csv')
 		self.dist['Distribution'] = self.dist.apply(self.ConvetToArray, axis = 1)
+		self.uniq_labels = [label.lower() for label in self.obj.Label.unique()]
 		txt_process = TextProcessing()
 		processed_captions = []
 		for caption in self.images.caption:
@@ -114,8 +115,12 @@ class Person:
 				for _to in pids:
 					if _from ==_to or _to not in caption_vs_caption[_from].keys():
 						continue
-					persons += [_from] * len(caption_vs_caption[_from][_to])
-					words += caption_vs_caption[_from][_to]
+					for obj in self.uniq_labels:
+						for word in caption_vs_caption[_from][_to]:
+							if word.lower() in obj:
+								words += [word]
+								persons += [_from]
+		print("Common objects {}".format(words))
 		fig = go.Figure(go.Parcats(
 			dimensions=[
 				{'label': 'Persons',

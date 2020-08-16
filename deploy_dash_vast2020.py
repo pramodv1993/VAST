@@ -214,28 +214,27 @@ app.layout = html.Div(
 											style=dict(width='60%'),
 											multi = True
 											)
-										], className="pretty_container six columns"),
-										html.Div([
-													html.H3("Images"),
-													html.Div([], id='fp_images', className="grid-container")
-												]
-										,className="pretty_container six columns"),
-							], className="row"), html.Br(),
+										],className="pretty_container six columns"),
+							],className="row"), html.Br(),
 					html.Div([
 									html.Div(html.Button('Eliminate False Positives', id='del_fps', n_clicks=0)
 									,className='pretty_container four columns')
 							]
 						,className="row"),
 					html.Div([
-								dcc.Loading(
+								html.Div([dcc.Loading(
 									id="updated_obj_graph_loading",
 									type='circle',
 									children = [dcc.Graph(id="updated_obj_graph")]
-								)
-						],className='pretty_container row'),
+								)], className='pretty_container six columns'),
+								html.Div([
+									html.H3("Images"),
+									html.Div([], id='fp_images', className="grid-container")
+								], className= 'pretty_container six columns')
+						],className='row'),
 					#Analysis 10 - Reannotation of TPs
 					html.Div([html.Div([
-								html.H3(children='Re-annotate the ambiguous images',style={'margin-top': '25px','text-align': 'center', 'fontSize': 20}),
+								html.H3(children='Rectify and Reannotate bounding boxes',style={'margin-top': '25px','text-align': 'center', 'fontSize': 20}),
 									dcc.Dropdown(
     								options=[
         									{'label': 'Person1_1', 'value': 'Person1_1'},
@@ -261,7 +260,7 @@ app.layout = html.Div(
 								]),
 					html.Div([
 								html.Div([
-									html.Button('Reannotate', id='done-val', n_clicks=0)], className = "six columns"),
+									html.Button('Rectify', id='done-val', n_clicks=0)], className = "six columns"),
 								html.Div([
 									html.Div(id='dummy')], className = "four columns"),
 								html.Div([
