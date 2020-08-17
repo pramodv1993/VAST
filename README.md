@@ -19,6 +19,12 @@ pip install networkx
 pip install pandas
 pip install matplotlib
 ```
+- Download the dataset from the portal
+```
+https://vast-challenge.github.io/2020/MC2.html
+```
+and copy the downloaded folder (with name MC2) inside the directory scripts_assets_datasets.
+
 - Modify the images to draw rectangles that corresponds to the bounding box predictions from the classifier that is used as reference during the correction process.
 
 ```
